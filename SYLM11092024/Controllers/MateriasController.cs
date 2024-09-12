@@ -1,83 +1,86 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using SYLM11092024.Models;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SYLM11092024.Controllers
 {
-    public class MateriasController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class MateriasController : ControllerBase
     {
-        // GET: MateriasController
-        public ActionResult Index()
+        // Static list to simulate a database
+        static List<Materia> materias = new List<Materia>();
+
+        // GET: api/<MateriasController>
+        [HttpGet]
+        public ActionResult<IEnumerable<Materia>> Get()
         {
-            return View();
+            return Ok(materias);
         }
 
-        // GET: MateriasController/Details/5
-        public ActionResult Details(int id)
+        // GET api/<MateriasController>/5
+        [HttpGet("{id}")]
+        public ActionResult<Materia> Get(int id)
         {
-            return View();
+            var materia = materias.FirstOrDefault(m => m.Id == id);
+            if (materia == null)
+            {
+                return NotFound();
+            }
+            return Ok(materia);
         }
 
-        // GET: MateriasController/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: MateriasController/Create
+        // POST api/<MateriasController>
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public IActionResult Post([FromBody] Materia materia)
         {
-            try
+            if (materia == null)
             {
-                return RedirectToAction(nameof(Index));
+                return BadRequest("Materia object is null");
             }
-            catch
+
+            if (materias.Any(m => m.Id == materia.Id))
             {
-                return View();
+                return Conflict("A Materia with the same ID already exists.");
             }
+
+            materias.Add(materia);
+            return CreatedAtAction(nameof(Get), new { id = materia.Id }, materia);
         }
 
-        // GET: MateriasController/Edit/5
-        public ActionResult Edit(int id)
+        // PUT api/<MateriasController>/5
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] Materia materia)
         {
-            return View();
+            if (materia == null || id != materia.Id)
+            {
+                return BadRequest();
+            }
+
+            var existingMateria = materias.FirstOrDefault(m => m.Id == id);
+            if (existingMateria == null)
+            {
+                return NotFound();
+            }
+
+            existingMateria.Name = materia.Name;
+            existingMateria.Description = materia.Description;
+            return NoContent();
         }
 
-        // POST: MateriasController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
+        // DELETE api/<MateriasController>/5
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
-            try
+            var existingMateria = materias.FirstOrDefault(m => m.Id == id);
+            if (existingMateria == null)
             {
-                return RedirectToAction(nameof(Index));
+                return NotFound();
             }
-            catch
-            {
-                return View();
-            }
-        }
 
-        // GET: MateriasController/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: MateriasController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+            materias.Remove(existingMateria);
+            return NoContent();
         }
     }
 }
